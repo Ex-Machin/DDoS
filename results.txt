@@ -1,0 +1,4 @@
+Wyniki z programu: 
+Pole kwadrat: 4.0 
+Pole prostokąt: 6.0 
+Pole trapez: 4.5 
