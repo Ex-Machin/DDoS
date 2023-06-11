@@ -1,55 +1,75 @@
-from functions import licz_pola_figur 
+from functions import ThreadJob 
+import tkinter as tk
+import threading
+import requests
 
-wyniki = {
-    'kwadrat': [],
-    'prostokąt': [],
-    'trapez': [],
-    'koło': []
-}
+class DDoSInterface:
+    def __init__(self, root):
+        self.root = root
+        self.endpoint = tk.StringVar()
+        self.response = tk.StringVar()
+        self.delay = tk.IntVar()
+        self.running = False
+        self.event = threading.Event()
+        self.k = None
 
-def wyświetł_dane(figura, *boki):
-    pole= licz_pola_figur(figura, boki)
-    print(f"Pole {figura} wynosi: {pole}")
-    wyniki[figura].append(pole)
+        self.endpoint_label = tk.Label(root, text="Endpoint:")
+        self.endpoint_entry = tk.Entry(root, textvariable=self.endpoint)
+        self.delay_label = tk.Label(root, text="Delay (minutes):")
+        self.delay_entry = tk.Entry(root, textvariable=self.delay)
+        self.start_button = tk.Button(root, text="Start DDoS", command=self.start_ddos)
+        self.stop_button = tk.Button(root, text="Stop DDoS", command=self.stop_ddos)
+        self.save_button = tk.Button(root, text="Save Response", command=self.save_response)
+        self.output_text = tk.Text(root, height=50, width=40)
 
-start = True
+        self.endpoint_label.pack()
+        self.endpoint_entry.pack()
+        self.delay_label.pack()
+        self.delay_entry.pack()
+        self.start_button.pack()
+        self.stop_button.pack()
+        self.save_button.pack()
+        self.output_text.pack()
 
-while start:
-    pytanie = input('Co chcesz zrobić? \n1. Licz pole kwadratu \n2. Licz pole prostokąta \n3. Licz pole trapezu \n4. Licze pole koła \n5. Zakońc program \nWpisz numer: ')
+    def start_ddos(self):
+        if self.running:
+            return
 
-    if pytanie == '1':
-        a = float(input("Podaj długość boku kwadratu: "))
-        if a > 0:
-            wyświetł_dane('kwadrat', a)
+        delay = self.delay.get()
 
-    elif pytanie == "2":
-        a = float(input("Podaj dłigość pierwszego boku"))
-        b = float(input("Podaj dłigość drugiego boku"))
+        self.running = True
+        self.ddos_request(delay)
 
-        if a > 0 and b > 0:
-            wyświetł_dane('prostokąt', a, b)
+    def save_response(self):
+        # write the response to a file
+        with open("response.txt", "w") as f:
+            f.write(self.output_text.get("1.0", tk.END))
 
-    elif pytanie == "3":
-        a = float(input("Podaj dłigość pierwszej podstawy: "))
-        b = float(input("Podaj dłigość drugiego podstawy: "))
-        h = float(input("Podaj wysokość: "))
+    def send_request(self):
+        endpoint = self.endpoint.get()
+        self.response = requests.get(endpoint).json()
+        self.output_text.insert(tk.END, self.response)
+        self.output_text.see(tk.END)
 
-        if a > 0 and b > 0 and h > 0:
-            wyświetł_dane('trapez', a, b, h)
-
-    if pytanie == '4':
-        r = int(input('Podaj promień: '))
-        if r < 0:
-            pole_trapezu = licz_pola_figur('kolo', r)
-
-    if pytanie == '5':
-        start = False
-
-with open('results.txt', 'w', encoding='utf-8') as file:
-    file.write('Wyniki z programu: \n')
-    for klucz in wyniki.keys():
-        for pole in wyniki[klucz]:
-            file.write(f"Pole {klucz}: {pole} \n")
+    def stop_ddos(self):
+        self.output_text.insert(tk.END, "\nDDoS request ended\n")
+        self.event.set()
+        self.k.join()
 
 
+    def ddos_request(self, delay):
+        self.output_text.insert(tk.END, "DDoS request started\n")
+        self.k = ThreadJob(self.send_request, self.event, delay)
+        self.k.start()
+        
+
+# Create the Tkinter window
+root = tk.Tk()
+root.title("DDoS Program")
+
+# Create the DDoS interface
+ddos_interface = DDoSInterface(root)
+
+# Run the Tkinter event loop
+root.mainloop()
 
