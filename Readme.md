@@ -29,12 +29,6 @@ This Python-based graphical user interface (GUI) simulates a DDoS (Distributed D
 ## Usage
 
 1. Clone the repository:
-
-```bash
-git clone https://github.com/your-username/ddos-interface.git
-cd ddos-interface
-```
-
 2. Install dependencies:
 ```bash
 pip install requests
