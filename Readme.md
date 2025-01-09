@@ -36,7 +36,7 @@ pip install requests
 
 3. Run the script:
 ```bash
-python ddos_interface.py
+python app.py
 ```
 
 ## Notes
